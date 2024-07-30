@@ -1,3 +1,9 @@
 [submodule "Day3/website-project"]
 	path = Day3/website-project
 	url = https://github.com/Mayusha-R/website-project.git
+[submodule "Day7/nodejs-project"]
+	path = Day7/nodejs-project
+	url = /home/einfochips/Day7/nodejs-project/
+[submodule "Day8/nodejs-project"]
+	path = Day8/nodejs-project
+	url = /home/einfochips/Day8/nodejs-project/
