@@ -16,3 +16,6 @@
 [submodule "Day14/java-docker"]
 	path = Day14/java-docker
 	url = https://github.com/Mayusha-R/java-docker.git
+[submodule "Day15/jenkins-docker-ansible"]
+	path = Day15/jenkins-docker-ansible
+	url = https://github.com/Mayusha-R/jenkins-docker-ansible.git
