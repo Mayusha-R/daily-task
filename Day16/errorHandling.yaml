@@ -1,0 +1,26 @@
+---
+- name: Example playbook with error handling
+  hosts: all
+  become: yes
+  tasks:
+    - name: Error handling 
+      block:
+        - name: Attempt to start a non-existent service
+          service:
+            name: random
+            state: started
+
+      rescue:
+        - name: Handle failure by notifying
+          debug:
+            msg: "Tasks failed. Handling errors."
+
+        - name: Attempt to start a fallback service
+          service:
+            name: nginx
+            state: started
+
+      always:
+        - name: Log completion of error handling block
+          debug:
+            msg: "Error handling block completed, regardless of the outcome."

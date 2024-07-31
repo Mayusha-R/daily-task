@@ -1,0 +1,10 @@
+---
+- name: Install a specific package on all managed nodes
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install apache2 package
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes

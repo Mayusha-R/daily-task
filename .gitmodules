@@ -10,3 +10,9 @@
 [submodule "Day12/Jenkins-pipeline-demo"]
 	path = Day12/Jenkins-pipeline-demo
 	url = https://github.com/Mayusha-R/Jenkins-pipeline-demo.git
+[submodule "Day13/java-maven-app"]
+	path = Day13/java-maven-app
+	url = https://github.com/Mayusha-R/java-maven-app.git
+[submodule "Day14/java-docker"]
+	path = Day14/java-docker
+	url = https://github.com/Mayusha-R/java-docker.git
