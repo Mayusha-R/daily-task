@@ -7,3 +7,6 @@
 [submodule "Day8/nodejs-project"]
 	path = Day8/nodejs-project
 	url = /home/einfochips/Day8/nodejs-project/
+[submodule "Day12/Jenkins-pipeline-demo"]
+	path = Day12/Jenkins-pipeline-demo
+	url = https://github.com/Mayusha-R/Jenkins-pipeline-demo.git
