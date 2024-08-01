@@ -1,0 +1,108 @@
+---
+
+- name: Install PostgreSQL
+  hosts: database
+  become: yes
+  vars:
+    db_name: "my_psql_db"
+    user_name: "userabc"
+    user_password: "password123"
+    backup_dir: /var/backups/postgresql
+    backup_script_path: /usr/local/bin/backup.sh
+    backup_time: "0 2 * * *"
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - acl
+          - python3-pip
+          - python3-psycopg2
+        state: present
+        update_cache: yes
+
+    - name: Add pgdg repo to sources.list.d
+      lineinfile:
+        path: /etc/apt/sources.list.d/pgdg.list
+        line: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        create: yes
+
+    - name: Download PostgreSQL key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Enable service
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Create database
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        state: present
+
+    - name: Create a user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ user_name }}"
+        password: "{{ user_password }}"
+        db: "{{ db_name }}"
+        priv: "ALL"
+        state: present
+
+
+- name: Deploy and configure web server
+  hosts: webserver
+  become: yes
+
+  vars:
+    db_host: "host_ip"
+    db_name: "my_psql_db"
+    user_name: "userabc"
+    user_password: "password123"
+
+  tasks:
+  - name: Install Nginx
+    apt:
+      name: nginx
+      state: present
+      update_cache: yes
+
+  - name: Ensure Nginx is running
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+
+  - name: Deploy application files
+    copy:
+      src: index.html
+      dest: /var/www/html/index.html
+
+  - name: Configure application
+    template:
+      src: templates/app_config.php.j2
+      dest: /var/www/html/app_config.php
+    notify:
+      - Restart Nginx
+
+  handlers:
+  - name: Restart Nginx
+    service:
+      name: nginx
+      state: restarted
