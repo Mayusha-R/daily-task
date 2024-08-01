@@ -1,8 +1,8 @@
-#Deploy a Database Server with Backup Automation
+# Deploy a Database Server with Backup Automation
 
 **Objective**: Automate the deployment and configuration of a PostgreSQL database server on an Ubuntu instance hosted on AWS, and set up regular backups.
 
-###Problem Statement
+### Problem Statement
 
 **Objective**: Automate the deployment, configuration, and backup of a PostgreSQL database server on an Ubuntu instance using Ansible.
 
