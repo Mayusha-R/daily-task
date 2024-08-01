@@ -1,5 +1,7 @@
 **Project Problem Statement**
+
 A development team needs to establish a basic CI/CD pipeline for a web application. The goal is to automate version control, containerization, building, testing, and deployment processes.
+
 **Deliverables**
     1. Git Repository:
         - Create a Git repository: Initialize a new repository for the web application.
