@@ -1,0 +1,14 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-2
+filters:
+  instance-state-name:
+    - running
+  tag:Name:
+    - Mayusha
+hostnames:
+  - dns-name
+compose:
+  ansible_host: public_dns_name
+  ansible_user: 'ubuntu'
+  ansible_ssh_private_key_file: ./ansible-worker.pem
