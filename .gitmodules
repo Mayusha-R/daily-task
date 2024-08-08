@@ -13,3 +13,6 @@
 [submodule "Day15/jenkins-docker-ansible"]
 	path = Day15/jenkins-docker-ansible
 	url = https://github.com/Mayusha-R/jenkins-docker-ansible.git
+[submodule "Day20/ansible-dynamic-inventory"]
+	path = Day20/ansible-dynamic-inventory
+	url = https://github.com/Mayusha-R/ansible-dynamic-inventory
