@@ -1,0 +1,4 @@
+---
+db_name: "my_mysql_db"
+user_name: "userabc"
+user_password: "password123"
