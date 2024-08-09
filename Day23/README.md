@@ -108,7 +108,7 @@
         alertmanagers:
           - static_configs:
               - targets:
-                  - alertmanager:9093
+                  - localhost:9093
 
     ```
 
