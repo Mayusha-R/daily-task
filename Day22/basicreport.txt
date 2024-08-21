@@ -1,0 +1,19 @@
+Disk Usage Report Shown Below :-
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           1.6G  2.5M  1.6G   1% /run
+/dev/nvme0n1p1   94G   25G   65G  28% /
+tmpfs           7.8G   49M  7.7G   1% /dev/shm
+tmpfs           5.0M  4.0K  5.0M   1% /run/lock
+efivarfs        384K   92K  288K  25% /sys/firmware/efi/efivars
+/dev/nvme0n1p3  976M  6.1M  970M   1% /boot/efi
+/dev/nvme0n1p4  359G  6.8G  334G   2% /home
+tmpfs           1.6G  1.7M  1.6G   1% /run/user/1000
+
+Memory Usage Report :- 
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       8.4Gi       659Mi       1.3Gi       6.4Gi       5.3Gi
+Swap:           14Gi       938Mi        13Gi
+
+CPU Load Report :-
+%Cpu(s):  2.7 us,  2.7 sy,  0.0 ni, 94.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+
