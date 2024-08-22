@@ -5,3 +5,6 @@ node_modules
 *.cfg
 
 .terraform*
+
+
+*tfstate.backup
