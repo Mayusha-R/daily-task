@@ -162,8 +162,8 @@
     alertmanager.yml:
     ```yml
     route:
-    receiver: 'admin'
-    routes:
+      receiver: 'admin'
+      routes:
         - match:
             severity: 'critical'
           receiver: 'critical_alerts'
@@ -172,19 +172,19 @@
         - receiver: 'admin'
 
     receivers:
-    - name: 'critical_alerts'
-      email_configs:
-        - to: 'mayraym9@gmail.com'
-          from: 'mayraym9@gmail.com'
-          smarthost: 'smtp.example.com:587'
-          auth_username: 'mayraym9@gmail.com'
-          auth_identity: 'mayraym9@gmail.com'
-          auth_password: '<password>'
+      - name: 'critical_alerts'
+        email_configs:
+          - to: 'mayraym9@gmail.com'
+            from: 'mayraym9@gmail.com'
+            smarthost: 'smtp.example.com:587'
+            auth_username: 'mayraym9@gmail.com'
+            auth_identity: 'mayraym9@gmail.com'
+            auth_password: '<password>'
 
-    - name: 'admin'
-      slack_configs:
-        - api_url: '<slack-webhook-url>'
-          channel: '#prometheus'
+      - name: 'admin'
+        slack_configs:
+          - api_url: '<slack-webhook-url>'
+        channel: '#promalerts'
     ```
 
 10. **Hands-on Exercise: Creating Alerts**
