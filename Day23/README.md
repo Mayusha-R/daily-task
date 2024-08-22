@@ -184,7 +184,7 @@
       - name: 'admin'
         slack_configs:
           - api_url: '<slack-webhook-url>'
-        channel: '#promalerts'
+            channel: '#promalerts'
     ```
 
 10. **Hands-on Exercise: Creating Alerts**
