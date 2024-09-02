@@ -1,3 +1,4 @@
 tag_name = "mayusha-prod"
-ami_id = "ami-0e86e20dae9224db8"
-region_name = "us-east-1"
+ami_id = "ami-085f9c64a9b75eed5"
+region_name = "us-east-2"
+aws_profile = "prod"

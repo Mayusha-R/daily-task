@@ -1,41 +1,61 @@
-# Deploy a Multi-tier web app
+# Project 01
 
-**Objective**: Automate the setup of a multi-tier web application stack with separate database and application servers using Ansible.
+## Problem Statement
 
-### Problem Statement
+You are tasked with deploying a three-tier web application (frontend, backend, and database) using Ansible roles. The frontend is an Nginx web server, the backend is a Node.js application, and the database is a MySQL server. Your solution should use Ansible Galaxy roles where applicable and define appropriate role dependencies. The deployment should be automated to ensure that all components are configured correctly and can communicate with each other.
 
-**Objective**: Automate the deployment and configuration of a multi-tier web application stack consisting of:
+## Steps and Deliverables
 
-   1. Database Server: Set up a PostgreSQL database server on one Ubuntu instance.
-   2. Application Server: Set up a web server (e.g., Apache or Nginx) on another Ubuntu instance to host a web application.
-   3. Application Deployment: Ensure the web application is deployed on the application server and is configured to connect to the PostgreSQL database on the database server.
-   4. Configuration Management: Use Ansible to automate the configuration of both servers, including the initialization of the database and the deployment of the web application.
+### 1. Define Project Structure
+- Create a new Ansible project with a suitable directory structure to organize roles, playbooks, and inventory files.
 
+### 2. Role Selection and Creation
+- Select appropriate roles from Ansible Galaxy for each tier of the application:
+  - Nginx for the frontend.
+  - Node.js for the backend.
+  - MySQL for the database.
+- Create any custom roles needed for specific configurations that are not covered by the Galaxy roles.
 
-**Deliverables**
-   1. Ansible Inventory File
-   + Filename: inventory.ini
-   + Content: Defines the database server and application server instances, including their IP addresses and connection details.
-   
-![](image01.png)
+### 3. Dependencies Management
+- Define dependencies for each role in the `meta/main.yml` file.
+- Ensure that the roles have appropriate dependencies, such as ensuring the database is set up before deploying the backend.
 
-   2. Ansible Playbook
-   + Filename: deploy_multitier_stack.yml
-   + Content: Automates:
-	The deployment and configuration of the PostgreSQL database server.
-	The setup and configuration of the web server.
-      	The deployment of the web application and its configuration to connect to the database.
-   
-   3. Jinja2 Template
-   + Filename: templates/app_config.php.j2
-   + Content: Defines a configuration file for the web application that includes placeholders for dynamic values such as database connection details.
-   
-   4. Application Files
-   + Filename: files/index.html
-   + Content: Static or basic dynamic content served by the web application.
+### 4. Inventory Configuration
+- Create an inventory file that defines the groups of hosts for each tier (frontend, backend, database).
+- Ensure proper group definitions and host variables as needed.
 
+### 5. Playbook Creation
+- Create a playbook (`deploy.yml`) that includes and orchestrates the roles for deploying the application.
+- Ensure the playbook handles the deployment order and variable passing between roles.
 
-![](image02.png)
+**Structure:**
 
+![alt text](image.png)
 
+**Playbook:**
+```yaml 
+---
+- name: Daploying Database
+  hosts: database
+  become: yes
+  roles:
+    - database
 
+- name: Deploying Backend
+  hosts: backend
+  become: yes
+  roles:
+    - backend
+
+- name: Dploying Frontend
+  hosts: frontend
+  become: yes
+  roles:
+    - frontend
+```
+
+**Output:**
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)

@@ -1,271 +1,177 @@
-# Project: Deploying a Multi-Tier Architecture Application using CloudFormation
+# Project: Deploying a Multi-Tier Architecture Application on AWS using Terraform
 
-## Project Objective:
+### Project Overview:
+Write Terraform configuration files to automate the deployment of a multi-tier application on AWS. The architecture should consist of:
++ EC2 Instance: A t2.micro instance serving as the application server.
++ RDS MySQL DB Instance: A t3.micro instance for the database backend.
++ S3 Bucket: For storing static assets or configuration files.
 
-This project will test your ability to deploy a multi-tier architecture application using AWS CloudFormation. The deployment should include an EC2 instance, an S3 bucket, a MySQL DB instance in RDS, and a VPC, all within the specified constraints.
+Key Tasks:
+1. **Setup Terraform Configuration:**
+    -  Provider Configuration:
+        -   Configure the AWS provider to specify the region for deployment.
+        -   Ensure the region is parameterized using a Terraform variable.
 
-## Project Overview:
+        ```hcl
+        terraform {
+            required_providers {
+                aws = {
+                    source = "hashicorp/aws"
+                }
+            }
+        }
+        provider "aws" {
+            region = var.region_name
+        }
+        ```
 
-You are required to design and deploy a multi-tier application using AWS CloudFormation. The architecture will include the following components:
-- **EC2 Instance:** Serve as the web server.
-- **S3 Bucket:** Store static assets or configuration files.
-- **RDS MySQL DB Instance:** Serve as the database backend.
-- **VPC:** Ensure secure communication between the components.
+    -  VPC and Security Groups:
+        -   Create a VPC with a public subnet for the EC2 instance.
+        -   Define security groups allowing HTTP and SSH access to the EC2 instance, and MySQL access to the RDS instance.
 
-**Key Tasks:**
-1. **Create a CloudFormation Template:**
-    - VPC and Subnets:
-        - Define a VPC with one public and one private subnet.
-        - Attach an Internet Gateway to the VPC for public subnet access.
-    - Security Groups:
-        - Create a security group for the EC2 instance, allowing SSH and HTTP access from a specific IP range.
-        - Create a security group for the RDS instance, allowing MySQL access from the EC2 instance only.
-    - EC2 Instance:
-        - Launch a t2.micro EC2 instance in the public subnet.
-        - Configure the instance to access the S3 bucket and connect to the RDS instance.
-    - S3 Bucket:
-        - Create an S3 bucket for storing static assets or configuration files.
-        - Ensure the EC2 instance has the necessary IAM role and permissions to access the S3 bucket.
-    - RDS MySQL DB Instance:
-        - Launch a t3.micro MySQL database in the private subnet.
-        - Configure the security group to allow access only from the EC2 instance.
+        ```hcl 
+        resource "aws_vpc" "my_vpc" {
+            cidr_block       = "10.0.0.0/16"
 
-    ```yml
+            tags = {
+                Name = "${var.tag_name}-VPC"
+            }
+        }
+        resource "aws_subnet" "my_subnet" {
+            vpc_id     = aws_vpc.my_vpc.id
+            cidr_block = "10.0.1.0/24"
+            availability_zone = "us-east-2b"
+            tags = {
+                Name = "${var.tag_name}-subnet"
+            }
+        }
+        resource "aws_subnet" "my_db_subnet" {
+            vpc_id     = aws_vpc.my_vpc.id
+            cidr_block = "10.0.2.0/24"
+            availability_zone = "us-east-2a"
+            tags = {
+                Name = "${var.tag_name}-subnet"
+            }
+        }
+        resource "aws_security_group" "security_group" {
+            vpc_id = aws_vpc.my_vpc.id
+            
+            ingress {
+                from_port = 22
+                to_port = 22
+                protocol = "tcp" 
+                cidr_blocks = ["0.0.0.0/0"]
+            }
+            ingress {
+                from_port = 80
+                to_port = 80
+                protocol = "tcp"
+                cidr_blocks = ["0.0.0.0/0"]
+            }    
+            tags = {
+                Name = "${var.tag_name}-sg"
+            }
+        }
+        resource "aws_security_group" "db_sg" {
+            vpc_id = aws_vpc.my_vpc.id
 
-    AWSTemplateFormatVersion: '2010-09-09'
-    Description: Deploy a multi-tier application with an EC2 instance, an S3 bucket, a MySQL DB instance in RDS, and a VPC.
+            ingress {
+                from_port   = 3306
+                to_port     = 3306
+                protocol    = "tcp"
+                security_groups = [aws_security_group.security_group.id]
+            }
 
-    Parameters:
-      VpcCidr:
-        Description: CIDR block for the VPC
-        Type: String
-        Default: "10.0.0.0/16"
+            tags = {
+                Name = "${var.tag_name}-db-sg"
+            }
+        }
+        ```
 
-      PublicSubnetCidr1:
-        Description: CIDR block for public subnet 1
-        Type: String
-        Default: "10.0.1.0/24"
 
-      PublicSubnetCidr2:
-        Description: CIDR block for public subnet 2
-        Type: String
-        Default: "10.0.3.0/24"
+    -  EC2 Instance:
+        -   Define the EC2 instance using a t2.micro instance type.
+        -   Configure the instance to allow SSH and HTTP access.
+        -   Use Terraform variables to define instance parameters like AMI ID and instance type.
 
-      PrivateSubnetCidr1:
-        Description: CIDR block for private subnet 1
-        Type: String
-        Default: "10.0.2.0/24"
+        ```hcl
+        resource "aws_instance" "my_instance" {
+            ami           = var.ami_id
+            instance_type = var.instance_type
+            subnet_id     = aws_subnet.my_subnet.id
+            vpc_security_group_ids = [aws_security_group.db_sg.id]
 
-      PrivateSubnetCidr2:
-        Description: CIDR block for private subnet 2
-        Type: String
-        Default: "10.0.4.0/24"
+            tags = {
+                Name = var.tag_name
+            }
+        }
+        ```
 
-      EC2InstanceType:
-        Description: EC2 instance type
-        Type: String
-        Default: t2.micro
+    -  RDS MySQL DB Instance:
+        -   Create a t3.micro MySQL DB instance within the same VPC.
+        -   Use Terraform variables to define DB parameters like DB name, username, and password.
+        -   Ensure the DB instance is publicly accessible, and configure security groups to allow access from the EC2 instance.
 
-      AMIId:
-        Type: String
-        Description: The AMI ID for the EC2 instance.
-        Default: 'ami-05134c8ef96964280'
+        ```hcl
+        resource "aws_db_subnet_group" "db_subnet" {
+            name       = "${var.tag_name}-db-subnetgroup"
+            subnet_ids = [aws_subnet.my_subnet.id, aws_subnet.my_db_subnet.id]
 
-      DBInstanceType:
-        Description: RDS instance type
-        Type: String
-        Default: db.t3.micro
+            tags = {
+                Name = "${var.tag_name}-db-subnetgroup"
+            }
+        }
+        resource "aws_db_instance" "my_db_instance" {
+            allocated_storage    = 10
+            db_subnet_group_name = aws_db_subnet_group.db_subnet.id
+            vpc_security_group_ids = [aws_security_group.security_group.id]
+            db_name              = var.name_db
+            engine               = "mysql"
+            engine_version       = "8.0"
+            instance_class       = "db.t3.micro"
+            username             = var.db_user
+            password             = var.db_pass
+            parameter_group_name = "default.mysql8.0"
+            skip_final_snapshot  = true
+        }
+        ```
 
-      DBUsername:
-        Description: The username for the RDS instance
-        Type: String
-        NoEcho: true
-        Default: admin
+    -  S3 Bucket:
+        -   Create an S3 bucket for storing static files or configurations.
+        -   Allow the EC2 instance to access the S3 bucket by assigning the appropriate IAM role and policy.
+        ```hcl
+        resource "aws_s3_bucket" "my_bucket" {
+            bucket = "${var.tag_name}-bucket"
+            tags = {
+                Name = "${var.tag_name}-bucket"
+            }
+        }
+        ```
 
-      DBPassword:
-        Description: The master password for the RDS instance
-        Type: String
-        NoEcho: true
-
-      S3BucketName:
-        Type: String
-        Description: Unique name for the S3 bucket.
-
-    Resources:
-      MyVPC:
-        Type: AWS::EC2::VPC
-        Properties:
-          CidrBlock: !Ref VpcCidr
-          Tags:
-            - Key: Name
-              Value: MyVPC
-
-      PublicSubnet1:
-        Type: AWS::EC2::Subnet
-        Properties:
-          VpcId: !Ref MyVPC
-          CidrBlock: !Ref PublicSubnetCidr1
-          AvailabilityZone: !Select [0, !GetAZs '']
-          MapPublicIpOnLaunch: true
-          Tags:
-            - Key: Name
-              Value: PublicSubnet1
-
-      PublicSubnet2:
-        Type: AWS::EC2::Subnet
-        Properties:
-          VpcId: !Ref MyVPC
-          CidrBlock: !Ref PublicSubnetCidr2
-          AvailabilityZone: !Select [1, !GetAZs '']
-          MapPublicIpOnLaunch: true
-          Tags:
-            - Key: Name
-              Value: PublicSubnet2
-
-      PrivateSubnet1:
-        Type: AWS::EC2::Subnet
-        Properties:
-          VpcId: !Ref MyVPC
-          CidrBlock: !Ref PrivateSubnetCidr1
-          AvailabilityZone: !Select [0, !GetAZs '']
-          Tags:
-            - Key: Name
-              Value: PrivateSubnet1
-
-      PrivateSubnet2:
-        Type: AWS::EC2::Subnet
-        Properties:
-          VpcId: !Ref MyVPC
-          CidrBlock: !Ref PrivateSubnetCidr2
-          AvailabilityZone: !Select [1, !GetAZs '']
-          Tags:
-            - Key: Name
-              Value: PrivateSubnet2
-
-      MyInternetGateway:
-        Type: AWS::EC2::InternetGateway
-        Properties:
-          Tags:
-            - Key: Name
-              Value: MyInternetGateway
-
-      VPCGatewayAttachment:
-        Type: AWS::EC2::VPCGatewayAttachment
-        Properties:
-          VpcId: !Ref MyVPC
-          InternetGatewayId: !Ref MyInternetGateway
-
-      EC2SecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-          VpcId: !Ref MyVPC
-          GroupDescription: Allow HTTP access
-          SecurityGroupIngress:
-            - IpProtocol: tcp
-              FromPort: 80
-              ToPort: 80
-              CidrIp: 0.0.0.0/0
-
-      RDSSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-          VpcId: !Ref MyVPC
-          GroupDescription: Allow MySQL access from EC2 only
-          SecurityGroupIngress:
-            - IpProtocol: tcp
-              FromPort: 3306
-              ToPort: 3306
-              SourceSecurityGroupId: !Ref EC2SecurityGroup
-
-      MyEC2Instance:
-        Type: AWS::EC2::Instance
-        Properties:
-          InstanceType: !Ref EC2InstanceType
-          ImageId: !Ref AMIId
-          SubnetId: !Ref PublicSubnet1
-          SecurityGroupIds:
-            - !Ref EC2SecurityGroup
-          UserData:
-            Fn::Base64: !Sub |
-              #!/bin/bash
-              apt-get update
-              apt install -y apache2
-              systemctl start apache2
-              systemctl enable apache2
-
-      MyRDSDBInstance:
-        Type: AWS::RDS::DBInstance
-        Properties:
-          DBInstanceClass: !Ref DBInstanceType
-          Engine: MySQL
-          MasterUsername: !Ref DBUsername
-          MasterUserPassword: !Ref DBPassword
-          DBInstanceIdentifier: mydatabase
-          AllocatedStorage: 20
-          VPCSecurityGroups:
-            - !Ref RDSSecurityGroup
-          DBSubnetGroupName: !Ref DBSubnetGroup
-
-      DBSubnetGroup:
-        Type: AWS::RDS::DBSubnetGroup
-        Properties:
-          DBSubnetGroupDescription: Subnet group for RDS
-          SubnetIds:
-            - !Ref PrivateSubnet1
-            - !Ref PrivateSubnet2
-
-      MyS3Bucket:
-        Type: AWS::S3::Bucket
-        Properties:
-          BucketName: !Ref S3BucketName
-
-    ```
-
-2. **Deploy the Application:**
-    - Deploy the CloudFormation stack using the template created.
-    - Verify that all components are correctly configured and operational.
-    - Ensure the EC2 instance can communicate with the RDS instance and access the S3 bucket.
+    -  Outputs:
+        -   Define Terraform outputs to display the EC2 instance’s public IP address, the RDS instance’s endpoint, and the S3 bucket name.
 
     ![alt text](image.png)
 
+
+
+2. **Apply and Manage Infrastructure:**
+    -  Initial Deployment:
+        -   Run terraform init to initialize the configuration.
+        -   Use terraform plan to review the infrastructure changes before applying.
+        -   Deploy the infrastructure using terraform apply, and ensure that the application server, database, and S3 bucket are set up correctly.
+
     ![alt text](image-1.png)
+
+    -  Change Sets:
+        -   Make a minor change in the Terraform configuration, such as modifying an EC2 instance tag or changing an S3 bucket policy.
+        -   Use terraform plan to generate a change set, showing what will be modified.
+        -   Apply the change set using terraform apply and observe how Terraform updates the infrastructure without disrupting existing resources.
 
     ![alt text](image-2.png)
 
+3. **Resource Termination:**
+    - Once the deployment is complete and validated, run terraform destroy to tear down all the resources created by Terraform.
+    - Confirm that all AWS resources (EC2 instance, RDS DB, S3 bucket, VPC) are properly deleted.
+
     ![alt text](image-3.png)
-
-    ![alt text](image-4.png)
-
-    ![alt text](image-8.png)
-
-    ![alt text](image-9.png)
-
-    ![alt text](image-10.png)
-
-    ![alt text](image-11.png)
-
-3. **Testing:**
-    - VPC and Subnets:
-
-    ![alt text](image-5.png)
-
-    ![alt text](image-6.png)
-        
-    - EC2 Instance:
-
-    ![alt text](image-7.png)
-        
-    - S3 Bucket:
-
-    ![alt text](image-12.png)
-        
-    - RDS MySQL DB Instance:
-
-    ![alt text](image-13.png)
-        
-
-4. **Resource Termination:**
-    - Once the deployment and testing are complete, terminate all resources by deleting the CloudFormation stack.
-    - Ensure that no resources, such as EC2 instances, RDS instances, or S3 buckets, are left running.
-
-    ![alt text](image-14.png)
